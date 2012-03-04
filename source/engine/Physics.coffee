@@ -1,110 +1,103 @@
-### Physics Engine ###
+# Physics Engine
+# ==============
 
 class Physics
 
-	constructor: (@integrator = new Euler()) ->
+  # 
+  constructor: (@integrator = new Euler()) ->
+    # 最大fpsは60で固定
+    @timestep = 1.0 / 60
 
-		# Fixed timestep.
-		@timestep = 1.0 / 60
+    # 摩擦係数
+    @viscosity = 0.005
 
-		# Friction within the system.
-		@viscosity = 0.005
+    # 全体に適用する振舞
+    @behaviours = []
 
-		# Global behaviours.
-		@behaviours = []
+    # systemに登録されたparticles, springs
+    @particles = []
+    @springs = []
 
-		# Time in seconds.
-		@_time = 0.0
+    # ここから`@step()`で使用するproperty
+    # -------
+    # Time in seconds.
+    # NOTE: 参照されてない?
+    @_time = 0.0
 
-		# Last step duration.
-		@_step = 0.0
+    # Last step duration.
+    # NOTE: 参照されてない?
+    @_step = 0.0
 
-		# Current time.
-		@_clock = null
+    # 現在時刻
+    # stepの処理でdeltaを計るために使用する
+    @_clock = null
 
-		# Time buffer.
-		@_buffer = 0.0
+    # Time buffer.
+    # TODO: なにに使用されているか調べる
+    @_buffer = 0.0
 
-		# Max iterations per step.
-		@_maxSteps = 4
+    # 一回のstepで最大何回integrateするか
+    @_maxSteps = 4
 
-		# Particles in system.
-		@particles = []
+  # integrate
+  # ---------
+  # 1stepごとの更新処理
+  # 
+  # - return Array(Any) : spring.applyの返り値
+  integrate: (dt) ->
+    # 最初にphysicsに登録されている振舞を適用したあと
+    # それぞれparticle個別の振舞を適用して更新する
+    for particle, index in @particles
+      for behaviour in @behaviours
+        behaviour.apply particle, dt, index
+      particle.update dt, index
 
-		# Springs in system.
-		@springs = []
+    # Drag is inversely proportional to viscosity.
+    # TODO: integratorのコード読んだあとここのコードの意味を確認
+    drag = 1.0 - @viscosity
+    # Integrate motion.
+    @integrator.integrate @particles, dt, drag
 
-	### Performs a numerical integration step. ###
-	integrate: (dt) ->
+    for spring in @springs
+      spring.apply()
+  
+  # stepの計算
+  # - reutrn ()
+  step: ->
+    # 初回は @_clockを現在時刻で初期化する
+    @_clock ?= new Date().getTime()
 
-		# Drag is inversely proportional to viscosity.
-		drag = 1.0 - @viscosity
+    # 前回の処理からの時間の差分を計算
+    time = new Date().getTime()
+    delta = time - @_clock
 
-		# Update particles / apply behaviours.
+    # もし時間が進んでいなければ処理しない
+    return if delta <= 0.0
 
-		for particle, index in @particles
+    # deltaをmsからsに変換
+    delta *= 0.001
 
-			for behaviour in @behaviours
+    # 更新処理が行われるので、現在時刻を更新
+    @_clock = time
 
-				behaviour.apply particle, dt, index
-			
-			particle.update dt, index
+    # Increment time buffer.
+    # NOTE: 謎
+    @_buffer += delta
 
-		# Integrate motion.
+    # `@_maxStep`で設定した回数か`@_buffer`が空になるまで
+    # integrate処理を実行する
+    i = 0
+    while @_buffer >= @timestep and ++i < @_maxSteps
+      @integrate @timestep
+      @_buffer -= @timestep
+      @_time += @timestep
 
-		@integrator.integrate @particles, dt, drag
+    # debug用にstepにかかった時間を記録
+    @_step = new Date().getTime() - time
 
-		# Compute all springs.
-		
-		for spring in @springs
-
-			spring.apply()
-	
-	### Steps the system. ###
-	step: ->
-
-		# Initialise the clock on first step.
-		@_clock ?= new Date().getTime()
-
-		# Compute delta time since last step.
-		time = new Date().getTime()
-		delta = time - @_clock
-
-		# No sufficient change.
-		return if delta <= 0.0
-
-		# Convert time to seconds.
-		delta *= 0.001
-
-		# Update the clock.
-		@_clock = time
-
-		# Increment time buffer.
-		@_buffer += delta
-
-		# Integrate until the buffer is empty or until the
-		# maximum amount of iterations per step is reached.
-
-		i = 0
-
-		while @_buffer >= @timestep and ++i < @_maxSteps
-
-			# Integrate motion by fixed timestep.
-			@integrate @timestep
-
-			# Reduce buffer by one timestep.
-			@_buffer -= @timestep
-
-			# Increment running time.
-			@_time += @timestep
-
-		# Store step time for debugging.
-		@_step = new Date().getTime() - time
-
-	### Clean up after yourself. ###
-	destroy: ->
-
-		@integrator = null
-		@particles = null
-		@springs = null
+  # 後片付け
+  destroy: ->
+    @integrator = null
+    @particles = null
+    @springs = null
 
