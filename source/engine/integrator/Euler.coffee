@@ -1,33 +1,33 @@
-### Euler Integrator ###
-
+# Euler Integrator
+# ================
 class Euler extends Integrator
 
-    # v += a * dt
-    # x += v * dt
+  # v += a * dt
+  # x += v * dt
+  #
+  # - particles : 
+  # - dt :
+  # - drag :
+  integrate: (particles, dt, drag) ->
+    vel = new Vector()
+    for p in particles when not p.fixed
+      # 現在位置をoldに記録
+      p.old.pos.copy p.pos
 
-    integrate: (particles, dt, drag) ->
+      # 加速度を更新
+      p.acc.scale p.massInv
 
-        vel = new Vector()
-                
-        for p in particles when not p.fixed
+      # particleのvelをローカル変数にcopy
+      vel.copy p.vel
 
-            # Store previous location.
-            p.old.pos.copy p.pos
+      # v += a * dt
+      p.vel.add p.acc.scale dt
 
-            # Scale force to mass.
-            p.acc.scale p.massInv
+      # x += v * dt
+      p.pos.add vel.scale dt
 
-            # Duplicate velocity to preserve momentum.
-            vel.copy p.vel
+      # 摩擦適用
+      if drag then p.vel.scale drag
 
-            # Add force to velocity.
-            p.vel.add p.acc.scale dt
-
-            # Add velocity to position.
-            p.pos.add vel.scale dt
-
-            # Apply friction.
-            if drag then p.vel.scale drag
-
-            # Reset forces.
-            p.acc.clear()
+      # 加速度リセット
+      p.acc.clear()
