@@ -1,5 +1,3 @@
-/* Spring
-*/
 var Spring;
 
 Spring = (function() {

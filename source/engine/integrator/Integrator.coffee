@@ -1,7 +1,5 @@
-### Integrator ###
-
+# Integrator
+# ==========
 class Integrator
-
-    integrate: (particles, dt) ->
-
-        # Override.
+  integrate: (particles, dt) ->
+    # Override.

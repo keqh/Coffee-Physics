@@ -1,5 +1,3 @@
-/* Random
-*/
 var Random;
 
 Random = function(min, max) {

@@ -1,5 +1,3 @@
-/* Particle
-*/
 var Particle;
 
 Particle = (function() {
@@ -20,32 +18,20 @@ Particle = (function() {
     };
   }
 
-  /* Moves the particle to a given location vector.
-  */
-
   Particle.prototype.moveTo = function(pos) {
     this.pos.copy(pos);
     return this.old.pos.copy(pos);
   };
-
-  /* Sets the mass of the particle.
-  */
 
   Particle.prototype.setMass = function(mass) {
     this.mass = mass != null ? mass : 1.0;
     return this.massInv = 1.0 / this.mass;
   };
 
-  /* Sets the radius of the particle.
-  */
-
   Particle.prototype.setRadius = function(radius) {
     this.radius = radius != null ? radius : 1.0;
     return this.radiusSq = this.radius * this.radius;
   };
-
-  /* Applies all behaviours to derive new force.
-  */
 
   Particle.prototype.update = function(dt, index) {
     var behaviour, _i, _len, _ref, _results;

@@ -1,5 +1,3 @@
-/* Allows safe, dyamic creation of namespaces.
-*/
 var namespace;
 
 namespace = function(id) {

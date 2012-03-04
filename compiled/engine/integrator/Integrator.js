@@ -1,5 +1,3 @@
-/* Integrator
-*/
 var Integrator;
 
 Integrator = (function() {

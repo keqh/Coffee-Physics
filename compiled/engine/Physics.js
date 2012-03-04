@@ -1,5 +1,3 @@
-/* Physics Engine
-*/
 var Physics;
 
 Physics = (function() {
@@ -9,21 +7,17 @@ Physics = (function() {
     this.timestep = 1.0 / 60;
     this.viscosity = 0.005;
     this.behaviours = [];
+    this.particles = [];
+    this.springs = [];
     this._time = 0.0;
     this._step = 0.0;
     this._clock = null;
     this._buffer = 0.0;
     this._maxSteps = 4;
-    this.particles = [];
-    this.springs = [];
   }
-
-  /* Performs a numerical integration step.
-  */
 
   Physics.prototype.integrate = function(dt) {
     var behaviour, drag, index, particle, spring, _i, _j, _len, _len2, _len3, _ref, _ref2, _ref3, _results;
-    drag = 1.0 - this.viscosity;
     _ref = this.particles;
     for (index = 0, _len = _ref.length; index < _len; index++) {
       particle = _ref[index];
@@ -34,6 +28,7 @@ Physics = (function() {
       }
       particle.update(dt, index);
     }
+    drag = 1.0 - this.viscosity;
     this.integrator.integrate(this.particles, dt, drag);
     _ref3 = this.springs;
     _results = [];
@@ -43,9 +38,6 @@ Physics = (function() {
     }
     return _results;
   };
-
-  /* Steps the system.
-  */
 
   Physics.prototype.step = function() {
     var delta, i, time;
@@ -64,9 +56,6 @@ Physics = (function() {
     }
     return this._step = new Date().getTime() - time;
   };
-
-  /* Clean up after yourself.
-  */
 
   Physics.prototype.destroy = function() {
     this.integrator = null;
