@@ -1,59 +1,73 @@
-### Particle ###
+# Particle
+# ========
+# particleは円として表現される
+# 四角などの表現はまだ存在しない
 class Particle
+  # 質量を指定してparticleを作成する
+  # ex: `new Particle 1.0`
+  # mass : Float
+  #
+  # - return Particle : new Particle
+  constructor: (@mass = 1.0) ->
+    # 質量
+    @setMass @mass
 
-	constructor: (@mass = 1.0) ->
+    # 半径
+    @setRadius 1.0
+    # trueだと他のobjectの影響を受けず、固定される
+    @fixed = false
+    # このparticleがどのように振る舞うか
+    @behaviours = []
 
-		# Set initial mass.
-		@setMass @mass
+    # particleのvector
+    @pos = new Vector() # 現在位置
+    @vel = new Vector() # 速さ
+    @acc = new Vector() # 加速度
 
-		# Set initial radius.
-		@setRadius 1.0
+    # 一つ前の状態
+    @old =
+      pos: new Vector()
+      vel: new Vector()
+      acc: new Vector()
 
-		# Apply forces.
-		@fixed = false;
+  # _pos_に移動
+  #
+  # - pos : Vector
+  #
+  # - return Vector : pos
+  moveTo: (pos) ->
+    @pos.copy pos
+    @old.pos.copy pos
 
-		# Behaviours to be applied.
-		@behaviours = []
+  # massを再設定
+  # このときmassの逆数も覚えておく
+  #
+  # - mass : Float
+  #
+  # - return Float : massInv
+  setMass: (@mass = 1.0) ->
+    @massInv = 1.0 / @mass
 
-		# Current position.
-		@pos = new Vector()
+  # radiusを再設定
+  # このときradiusの平方も覚えておく
+  #
+  # - radius : Float
+  #
+  # - return Float : radiusSq
+  setRadius: (@radius = 1.0) ->
+    @radiusSq = @radius * @radius
 
-		# Current velocity.
-		@vel = new Vector()
-
-		# Current force.
-		@acc = new Vector()
-
-		# Previous state.
-		@old =
-			pos: new Vector()
-			vel: new Vector()
-			acc: new Vector()
-
-	### Moves the particle to a given location vector. ###
-	moveTo: (pos) ->
-
-		@pos.copy pos
-		@old.pos.copy pos
-
-	### Sets the mass of the particle. ###
-	setMass: (@mass = 1.0) ->
-
-		# The inverse mass.
-		@massInv = 1.0 / @mass;
-
-	### Sets the radius of the particle. ###
-	setRadius: (@radius = 1.0) ->
-
-		@radiusSq = @radius * @radius
-
-	### Applies all behaviours to derive new force. ###
-	update: (dt, index) ->
-
-		# Apply all behaviours.
-
-		if not @fixed
-			
-			for behaviour in @behaviours
-
-				behaviour.apply @, dt, index
+  # @behavioursに登録された振舞を適用する
+  # ただし、固定されていないときに限る
+  # TODO: _dt_と_index_の意味をbehavioursを見て調べる
+  # Collisionでindexは使用されている
+  # NOTE: `if not`は`unless`
+  # 
+  # - dt : ?
+  # - index : ?
+  #
+  # - return Array(Any) : behaviourのapplyの返り値
+  update: (dt, index) ->
+    if not @fixed
+      for behaviour in @behaviours
+        behaviour.apply @, dt, index
