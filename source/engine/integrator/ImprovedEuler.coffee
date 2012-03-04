@@ -1,39 +1,36 @@
-### Improved Euler Integrator ###
-
+# Improved Euler Integrator
+# =========================
+# Eulerを改善したもの
+# 計算式はintegrateを参照
 class ImprovedEuler extends Integrator
+  # x += (v * dt) + (a * 0.5 * dt * dt)
+  # v += a * dt
+  #
+  # - particles Array(Particles) :
+  # - dt Float :
+  # - drag Float :
+  integrate: (particles, dt, drag) ->
+    acc = new Vector()
+    vel = new Vector()
 
-    # x += (v * dt) + (a * 0.5 * dt * dt)
-    # v += a * dt
+    # NOTE: dtSqを用意するならx0.5もしておいていい気がする
+    dtSq = dt * dt
 
-    integrate: (particles, dt, drag) ->
+    for p in particles when not p.fixed
+      # Eulerと同じ
+      p.old.pos.copy p.pos
+      p.acc.scale p.massInv
 
-        acc = new Vector()
-        vel = new Vector()
+      # 作業用変数にpの各値をcopy
+      vel.copy p.vel
+      acc.copy p.acc
 
-        dtSq = dt * dt
+      # x += (x * dt) + (a * 0.5 * dt * dt)
+      p.pos.add (vel.scale dt).add (acc.scale 0.5 * dtSq)
 
-        for p in particles when not p.fixed
+      # v += a * dt
+      p.vel.add p.acc.scale dt
 
-            # Store previous location.
-            p.old.pos.copy p.pos
-
-            # Scale force to mass.
-            p.acc.scale p.massInv
-
-            # Duplicate velocity to preserve momentum.
-            vel.copy p.vel
-
-            # Duplicate force.
-            acc.copy p.acc
-
-            # Update position.
-            p.pos.add (vel.scale dt).add (acc.scale 0.5 * dtSq)
-
-            # Update velocity.
-            p.vel.add p.acc.scale dt
-
-            # Apply friction.
-            if drag then p.vel.scale drag
-
-            # Reset forces.
-            p.acc.clear()
+      # Eulerと同じ
+      if drag then p.vel.scale drag
+      p.acc.clear()
