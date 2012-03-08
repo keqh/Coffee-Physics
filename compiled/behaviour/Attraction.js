@@ -1,5 +1,3 @@
-/* Attraction Behaviour
-*/
 var Attraction,
   __hasProp = Object.prototype.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
@@ -16,9 +14,6 @@ Attraction = (function(_super) {
     this.setRadius(this.radius);
     Attraction.__super__.constructor.apply(this, arguments);
   }
-
-  /* Sets the effective radius of the bahavious.
-  */
 
   Attraction.prototype.setRadius = function(radius) {
     this.radius = radius;

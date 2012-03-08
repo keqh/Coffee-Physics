@@ -45,7 +45,9 @@ CollisionDemo = (function(_super) {
     return _results;
   };
 
-  CollisionDemo.prototype.onCollision = function(p1, p2) {};
+  CollisionDemo.prototype.onCollision = function(p1, p2) {
+    return console.log(p1, p2);
+  };
 
   return CollisionDemo;
 

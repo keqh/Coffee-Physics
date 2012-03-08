@@ -42,6 +42,7 @@ class CollisionDemo extends Demo
             @physics.particles.push p
 
     onCollision: (p1, p2) =>
+      console.log p1, p2
 
         # Respond to collision.
 

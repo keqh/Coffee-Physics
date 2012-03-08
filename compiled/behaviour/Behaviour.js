@@ -1,5 +1,3 @@
-/* Behaviour
-*/
 var Behaviour;
 
 Behaviour = (function() {

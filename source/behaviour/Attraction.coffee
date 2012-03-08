@@ -1,35 +1,37 @@
-### Attraction Behaviour ###
-
+# Attraction Behaviour
+# ====================
+# Attraction : 引力
 class Attraction extends Behaviour
 
-    constructor: (@target = new Vector(), @radius = 1000, @strength = 100.0) ->
+  # - target Vector :
+  # - radius Float :
+  # - strength Float :
+  constructor: (@target = new Vector(), @radius = 1000, @strength = 100.0) ->
+    @_delta = new Vector()
+    @setRadius @radius
+    super
 
-        @_delta = new Vector()
-        @setRadius @radius
+  # Sets the effective radius of the bahavious.
+  setRadius: (radius) ->
+    @radius = radius
+    @radiusSq = radius * radius
+  
+  # - p Particle :
+  # - dt Float :
+  # - index Int? :
+  apply: (p, dt, index) ->
+    #super p, dt, index
 
-        super
+    # Vector pointing from particle to target.
+    (@_delta.copy @target).sub p.pos
 
-    ### Sets the effective radius of the bahavious. ###
-    setRadius: (radius) ->
+    # Squared distance to target.
+    distSq = @_delta.magSq()
 
-        @radius = radius
-        @radiusSq = radius * radius
-    
-    apply: (p, dt, index) ->
-
-        #super p, dt, index
-
-        # Vector pointing from particle to target.
-        (@_delta.copy @target).sub p.pos
-
-        # Squared distance to target.
-        distSq = @_delta.magSq()
-
-        # Limit force to behaviour radius.
-        if distSq < @radiusSq and distSq > 0.000001
-
-            # Calculate force vector.
-            @_delta.norm().scale (1.0 - distSq / @radiusSq)
-
-            #Apply force.
-            p.acc.add @_delta.scale @strength
+    # Limit force to behaviour radius.
+    # NOTE: `0.000001 < distSq < @radiusSq`
+    if distSq < @radiusSq and distSq > 0.000001
+      # Calculate force vector.
+      @_delta.norm().scale (1.0 - distSq / @radiusSq)
+      #Apply force.
+      p.acc.add @_delta.scale @strength

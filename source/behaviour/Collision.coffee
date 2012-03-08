@@ -1,59 +1,49 @@
 ### Collision Behaviour ###
 
 # TODO: Collision response for non Verlet integrators.
-
 class Collision extends Behaviour
 
-    constructor: (@useMass = yes, @callback = null) ->
+  constructor: (@useMass = yes, @callback = null) ->
+    # Pool of collidable particles.
+    # 直接外部から更新される
+    @pool = []
 
-        # Pool of collidable particles.
-        @pool = []
+    # Delta between particle positions.
+    @_delta = new Vector()
 
-        # Delta between particle positions.
-        @_delta = new Vector()
+    super
+  
+  apply: (p, dt, index) ->
+    #super p, dt, index
 
-        super
-    
-    apply: (p, dt, index) ->
+    # Check pool for collisions.
+    for i in [index..@pool.length - 1]
+      o = @pool[i]
+      # oとpが同じparticleを指してる場合があるので、それを除外
+      if o isnt p
 
-        #super p, dt, index
+        # よくある衝突判定
+        # 二つのpの半径を足したのよりも距離が短かければ
+        # 重なる部分がある = 衝突している
+        (@_delta.copy o.pos).sub p.pos
+        distSq = @_delta.magSq()
+        radii = p.radius + o.radius
+        if distSq <= radii * radii
 
-        # Check pool for collisions.
-        for i in [index..@pool.length - 1]
+          dist = Math.sqrt distSq
 
-            o = @pool[i]
-            
-            if o isnt p
+          # 衝突してる部分の計算
+          overlap = (p.radius + o.radius) - dist
+          overlap += 0.5
 
-                # Delta between particles positions.
-                (@_delta.copy o.pos).sub p.pos
+          # Distribute collision responses.
+          mt = p.mass + o.mass
+          r1 = if @useMass then o.mass / mt else 0.5
+          r2 = if @useMass then p.mass / mt else 0.5
 
-                # Squared distance between particles.
-                distSq = @_delta.magSq()
+          # 重なる部分がなくなるようにparticleを移動する
+          p.pos.add (@_delta.clone().norm().scale overlap * -r1)
+          o.pos.add (@_delta.norm().scale overlap * r2)
 
-                # Sum of both radii.
-                radii = p.radius + o.radius
-
-                # Check if particles collide.
-                if distSq <= radii * radii
-
-                    # Compute real distance.
-                    dist = Math.sqrt distSq
-
-                    # Determine overlap.
-                    overlap = (p.radius + o.radius) - dist
-                    overlap += 0.5
-
-                    # Total mass.
-                    mt = p.mass + o.mass
-
-                    # Distribute collision responses.
-                    r1 = if @useMass then o.mass / mt else 0.5
-                    r2 = if @useMass then p.mass / mt else 0.5
-
-                    # Move particles so they no longer overlap.
-                    p.pos.add (@_delta.clone().norm().scale overlap * -r1)
-                    o.pos.add (@_delta.norm().scale overlap * r2)
-
-                    # Fire callback if defined.
-                    @callback?(p, o, overlap)
+          # Fire callback if defined.
+          @callback?(p, o, overlap)
